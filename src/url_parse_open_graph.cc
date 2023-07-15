@@ -19,6 +19,7 @@
 int parse_file(const std::string& file, std::string& html);
 int parse_uri(const std::string& uri, std::string& html);
 void traverse_tree(tree<htmlcxx::HTML::Node> const& dom);
+void get_tags(tree<htmlcxx::HTML::Node> const& dom);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // main
@@ -72,6 +73,7 @@ int main(int argc, char** argv)
     parser.parse(html);
     tr = parser.getTree();
     traverse_tree(tr);
+    get_tags(tr);
   }
   catch (std::exception& e)
   {
@@ -107,21 +109,6 @@ int parse_file(const std::string& file, std::string& html)
   ifs.close();
 
   return 0;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-// traverse_tree
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void traverse_tree(tree<htmlcxx::HTML::Node> const& dom)
-{
-  tree<htmlcxx::HTML::Node>::iterator it = dom.begin();
-  std::cout << it->text();
-  for (unsigned i = 0; i < dom.number_of_children(it); i++)
-  {
-    traverse_tree(dom.child(it, i));
-  }
-  std::cout << it->closingText();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -178,3 +165,46 @@ int parse_uri(const std::string& uri, std::string& html)
   return 0;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// traverse_tree
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void traverse_tree(tree<htmlcxx::HTML::Node> const& dom)
+{
+  tree<htmlcxx::HTML::Node>::iterator it = dom.begin();
+  std::cout << it->text();
+  for (unsigned i = 0; i < dom.number_of_children(it); i++)
+  {
+    traverse_tree(dom.child(it, i));
+  }
+  std::cout << it->closingText();
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// get_tags
+// The four basic open graph tags that are required for each page are og:title, og:type, og:image, and og:url
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void get_tags(tree<htmlcxx::HTML::Node> const& dom)
+{
+  tree<htmlcxx::HTML::Node>::iterator it = dom.begin();
+  tree<htmlcxx::HTML::Node>::iterator end = dom.end();
+
+  std::string tag;
+  for (; it != end; ++it)
+  {
+    if (it->isTag())
+    {
+      tag = it->tagName();
+      std::cout << tag << " = ";
+      it->parseAttributes();
+      std::map<std::string, std::string> attributes = it->attributes();
+      if (!attributes.size()) std::cout << std::endl;
+      for (const auto& pair : attributes)
+      {
+        std::cout << "  " << pair.first << " : " << pair.second << std::endl;
+      }
+
+    }
+    
+  }
+}

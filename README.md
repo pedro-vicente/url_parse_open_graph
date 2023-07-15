@@ -1,6 +1,13 @@
 # url_parse_open_graph
 Download OpenGraph data from a URL to generate link previews 
 
+## The Open Graph protocol
+
+https://ogp.me/
+
+Open Graph is an internet protocol to standardize the use of metadata within a webpage to represent the content of a page.
+The four basic open graph tags that are required for each page are og:title, og:type, og:image, and og:url
+
 ## Usage
 
 url_parse_open_graph is a command line client. Usage is:

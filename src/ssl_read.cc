@@ -8,7 +8,6 @@
 #include "asio.hpp"
 #include "asio/ssl.hpp"
 #include <openssl/ssl.h>
-
 #include "ssl_read.hh"
 
 namespace ssl = asio::ssl;
