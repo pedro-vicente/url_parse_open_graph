@@ -19,7 +19,6 @@
 int parse_file(const std::string& file, std::string& html);
 int parse_uri(const std::string& uri, std::string& html);
 void traverse_tree(tree<htmlcxx::HTML::Node> const& dom);
-namespace ssl = asio::ssl;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // main
@@ -135,20 +134,23 @@ int parse_uri(const std::string& uri, std::string& html)
   //parse URI
   /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  std::size_t start = uri.find("://", 0);
-  if (start == std::string::npos)
+  url_t url;
+  parse_url(uri, url);
+
+  std::string host = url.domain;
+  std::string path = url.path;
+  std::string port = url.port;
+  if (!port.size())
   {
-    return -1;
+    if (url.protocol.compare("https") == 0)
+      port = "443";
+    else if (url.protocol.compare("http") == 0)
+      port = "80";
   }
-  start += 3;
-  std::size_t end = uri.find("/", start + 1);
-  std::string host = uri.substr(start, end - start);
-  std::string path = uri.substr(end);
 
   std::cout << host << std::endl;
   std::cout << path << std::endl;
-
-  const std::string port_num = "443";
+  std::cout << port << std::endl;
 
   std::stringstream http;
   http << "GET " << path << " HTTP/1.1\r\n";
@@ -159,7 +161,7 @@ int parse_uri(const std::string& uri, std::string& html)
   std::cout << http.str() << std::endl;
 
   std::string buf;
-  if (ssl_read(host, port_num, http.str(), buf) < 0)
+  if (ssl_read(host, port, http.str(), buf) < 0)
   {
   }
   if (!buf.size())

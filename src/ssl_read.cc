@@ -8,6 +8,7 @@
 #include "asio.hpp"
 #include "asio/ssl.hpp"
 #include <openssl/ssl.h>
+
 #include "ssl_read.hh"
 
 namespace ssl = asio::ssl;
@@ -168,3 +169,53 @@ std::string get_response(const std::string& host, const std::string& port_num, c
   out.close();
   return buf;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// trim_url
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string trim_url(const std::string& str)
+{
+  size_t start = str.find_first_not_of(" \n\r\t");
+  size_t until = str.find_last_not_of(" \n\r\t");
+  std::string::const_iterator i = start == std::string::npos ? str.begin() : str.begin() + start;
+  std::string::const_iterator x = until == std::string::npos ? str.end() : str.begin() + until + 1;
+  return std::string(i, x);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// parse_url
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void parse_url(const std::string& raw, url_t& url)
+{
+  std::string path, domain, x, protocol, port, query;
+  int offset = 0;
+  size_t pos1, pos2, pos3, pos4;
+  x = trim_url(raw);
+  offset = offset == 0 && x.compare(0, 8, "https://") == 0 ? 8 : offset;
+  offset = offset == 0 && x.compare(0, 7, "http://") == 0 ? 7 : offset;
+  pos1 = x.find_first_of('/', offset + 1);
+  path = pos1 == std::string::npos ? "" : x.substr(pos1);
+  domain = std::string(x.begin() + offset, pos1 != std::string::npos ? x.begin() + pos1 : x.end());
+  path = (pos2 = path.find("#")) != std::string::npos ? path.substr(0, pos2) : path;
+  port = (pos3 = domain.find(":")) != std::string::npos ? domain.substr(pos3 + 1) : "";
+  domain = domain.substr(0, pos3 != std::string::npos ? pos3 : domain.length());
+  protocol = offset > 0 ? x.substr(0, offset - 3) : "";
+  query = (pos4 = path.find("?")) != std::string::npos ? path.substr(pos4 + 1) : "";
+  path = pos4 != std::string::npos ? path.substr(0, pos4) : path;
+
+  url.domain = domain;
+  url.path = path;
+  url.protocol = protocol;
+  url.port = port;
+  url.query = query;
+
+  std::cout << "[" << raw << "]" << std::endl;
+  std::cout << "protocol: " << protocol << std::endl;
+  std::cout << "domain: " << domain << std::endl;
+  std::cout << "port: " << port << std::endl;
+  std::cout << "path: " << path << std::endl;
+  std::cout << "query: " << query << std::endl;
+}
+
