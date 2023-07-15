@@ -13,6 +13,23 @@ url_parse_open_graph is a command line client. Usage is:
 
 ```
 
+## Example
+
+```
+./url_parse_open_graph --uri https://example.com/index.html
+
+```
+
+### HTTP request
+
+```
+GET /index.html HTTP/1.1
+Host: example.com
+Connection: close
+
+```
+
+
 ## Dependencies
 
 - CMake [https://cmake.org/]

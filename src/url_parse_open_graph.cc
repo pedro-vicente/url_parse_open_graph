@@ -1,16 +1,29 @@
-#include "htmlcxx/ParserDom.h"
 #include <cstdlib>
 #include <fstream>
 #include <stdexcept>
 #include <iostream>
 #include <cstdio>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <ctime>
+#include <sstream>
+#include "asio.hpp"
+#include "asio/ssl.hpp"
+#include <openssl/ssl.h>
+#include "asio.hpp"
+
+#include "ssl_read.hh"
+#include "htmlcxx/ParserDom.h"
 
 int parse_file(const std::string& file, std::string& html);
 int parse_uri(const std::string& uri, std::string& html);
 void traverse_tree(tree<htmlcxx::HTML::Node> const& dom);
+namespace ssl = asio::ssl;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // main
+// --uri https://example.com/index.html
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char** argv)
@@ -98,16 +111,6 @@ int parse_file(const std::string& file, std::string& html)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-// parse_uri
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int parse_uri(const std::string& uri, std::string& html)
-{
-
-  return 0;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
 // traverse_tree
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -121,3 +124,55 @@ void traverse_tree(tree<htmlcxx::HTML::Node> const& dom)
   }
   std::cout << it->closingText();
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// parse_uri
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int parse_uri(const std::string& uri, std::string& html)
+{
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
+  //parse URI
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  std::size_t start = uri.find("://", 0);
+  if (start == std::string::npos)
+  {
+    return -1;
+  }
+  start += 3;
+  std::size_t end = uri.find("/", start + 1);
+  std::string host = uri.substr(start, end - start);
+  std::string path = uri.substr(end);
+
+  std::cout << host << std::endl;
+  std::cout << path << std::endl;
+
+  const std::string port_num = "443";
+
+  std::stringstream http;
+  http << "GET " << path << " HTTP/1.1\r\n";
+  http << "Host: " << host << "\r\n";
+  http << "Connection: close\r\n";
+  http << "\r\n";
+
+  std::cout << http.str() << std::endl;
+
+  std::string buf;
+  if (ssl_read(host, port_num, http.str(), buf) < 0)
+  {
+  }
+  if (!buf.size())
+  {
+    return -1;
+  }
+
+  html = buf;
+
+  std::ofstream ofs("output");
+  ofs << buf;
+  ofs.close();
+
+  return 0;
+}
+

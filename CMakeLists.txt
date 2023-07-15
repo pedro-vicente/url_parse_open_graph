@@ -23,6 +23,8 @@ if (MSVC)
   add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
 endif()
 
+include_directories(ext/asio-1.22.2/include)
+
 #//////////////////////////
 #link with libraries
 #lib_dep contains a cascade definition of all the libraries needed to link
@@ -75,8 +77,10 @@ if(USE_OPENSSL)
 endif()
 
 set(src ${src})
+set(src ${src} src/ssl_read.cc)
+set(src ${src} src/ssl_read.hh)
 
-set(src ${src} src/htmlcxx/ParserSax.h )
+set(src ${src} src/htmlcxx/ParserSax.h)
 set(src ${src} src/htmlcxx/ParserSax.tcc)
 set(src ${src} src/htmlcxx/ParserSax.cc)
 set(src ${src} src/htmlcxx/ParserDom.h)
